@@ -153,6 +153,4 @@ def main():
             if langue == "ZH": print(f'[VIREVO] 对不起，未能识别您输入的资产。')
             elif langue == "EN": print(f'[VIREVO] Sorry, "{mot_inconnu}" is not recognized.')
             else: print(f'[VIREVO] Desole, "{mot_inconnu}" n\'est pas reconnu par mon systeme.')
-
-if name == "main":
-    main()
+main()
