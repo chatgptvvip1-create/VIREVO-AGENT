@@ -1,5 +1,53 @@
 import time
 import random
+from binance.spot import Spot as Client
+
+saluts_fr = ["BONJOUR", "SALUT", "COUCOU"]
+saluts_en = ["HELLO", "HI", "HEY"]
+mots_merci_quitter = ["MERCI", "THANKS", "EXIT", "QUIT", "SORTIE"]
+mots_anglais = ["CHECK", "ANALYZE", "LOOK", "PRICE", "PLEASE", "HI", "HELLO", "THANKS", "QUIT", "EXIT"]
+
+citations_fr = [
+    "Jesse Livermore : 'L'argent se fait en attendant, pas en tradant.'",
+    "Warren Buffett : 'La regle n°1 est de ne jamais perdre d'argent.'",
+    "George Soros : 'Il faut savoir combien on gagne quand on a raison.'",
+    "Benjamin Graham : 'Le pire ennemi du trader est probablement lui-meme.'"
+]
+citations_en = [
+    "Jesse Livermore: 'Money is made by sitting, not by trading.'",
+    "Warren Buffett: 'Rule No. 1 is never lose money.'",
+    "George Soros: 'It's how much money you make when you're right.'"
+]
+citations_zh = [
+    "杰西·利弗莫尔 : '钱 is 坐着赚来的。'",
+    "沃伦·巴菲特 : '第一条规则 is 永远不要亏钱。'",
+    "乔治·索罗斯 : '重要的是当你正确时你赢了多少钱。'"
+]
+
+# FONCTION DE LIAISON AVEC VOTRE SITE WEB FLASK
+def log_action(message):
+    print(message)  # Garde l'affichage dans votre terminal d'origine
+    with open("agent_activity.log", "a") as f:
+        f.write(message + "\n")  # Envoie l'activité sur l'interface web
+
+def recuperer_toutes_les_cryptos():
+    try:
+        client = Client()
+        infos = client.exchange_info()
+        cryptos = set()
+        for s in infos['symbols']:
+            if s['status'] == 'TRADING' and s['quoteAsset'] == 'USDT':
+                cryptos.add(s['baseAsset'].upper())
+        return list(cryptos)
+    except Exception as e:
+        log_action(f"[PRE-LOAD] Erreur liste Binance : {e}")
+        return ["BNB", "BTC", "ETH", "SOL", "XRP", "PEPE", "DOGE"]
+
+def calculer_ressemblance(m1, m2):
+    m1, m2 = m1.upper(), m2.upper()
+    communs = sum(1 for c in m1 if c in m2)
+    mx = max(len(m1), len(m2))
+    return (communs / mx) * 100 if mx > 0 else 0
 
 def obtenir_donnees_reelles(paire):
     try:
@@ -7,8 +55,10 @@ def obtenir_donnees_reelles(paire):
         ticker = client.ticker_price(paire)
         prix_reel = float(ticker['price'])
         depth = client.depth(paire, limit=10)
-        tot_a = sum(float(a) for a in depth['asks'])
-        tot_v = sum(float(b) for b in depth['bids'])
+        
+        tot_a = sum(float(a[1]) for a in depth['asks'])
+        tot_v = sum(float(b[1]) for b in depth['bids'])
+        
         pression = (tot_a / (tot_a + tot_v)) * 100 if (tot_a + tot_v) > 0 else 50
         return prix_reel, pression
     except Exception as e:
@@ -48,8 +98,9 @@ def executer_analyse(crypto, langue):
             else: log_action("[ANNULATION] Proposition rejetee par l'operateur.")
         log_action("=========================================")
     else:
-        log_action("[VIREVO] Erreur reseau Binance. Réessayez.")
-        def main():
+        log_action("[VIREVO] Erreur réseau Binance. Réessayez.")
+
+def main():
     log_action("=========================================")
     log_action("      VIREVO AGENT v1.0.0 IS ONLINE      ")
     log_action("=========================================")
@@ -68,14 +119,11 @@ def executer_analyse(crypto, langue):
         cmd_upper = cmd.upper()
         langue = "FR"
         est_chinois = any(ord(c) > 127 for c in cmd) or "ZH" in cmd_upper or "CHINESE" in cmd_upper
-       if est_chinois: 
-            langue = "ZH"
+        if est_chinois: langue = "ZH"
         else:
             txt = cmd_upper.replace(",", " ").replace(";", " ").replace("/", " ").replace(".", " ")
             mots = [m for m in txt.split(" ") if m]
-            if sum(1 for m in mots if m in mots_anglais) > 0: 
-                langue = "EN"
-                
+            if sum(1 for m in mots if m in mots_anglais) > 0: langue = "EN"
         txt = cmd_upper.replace(",", " ").replace(";", " ").replace("/", " ").replace(".", " ")
         mots = [m for m in txt.split(" ") if m]
         
@@ -85,28 +133,25 @@ def executer_analyse(crypto, langue):
             elif langue == "EN": log_action(f"\n[VIREVO] Thank you! 🍀\n[AI Quote] {random.choice(citations_en)}\nGoodbye!")
             else: log_action(f"\n[VIREVO] Merci d'avoir utilise mon systeme ! 🍀\n[Citation] {random.choice(citations_fr)}\nAu revoir !")
             break
-            est_salut_fr = any(any(calculer_ressemblance(m, s) >= 70 for s in saluts_fr) for m in mots)
+            
+        est_salut_fr = any(any(calculer_ressemblance(m, s) >= 70 for s in saluts_fr) for m in mots)
         est_salut_en = any(any(calculer_ressemblance(m, s) >= 70 for s in saluts_en) for m in mots)
         v_ok = any(calculer_ressemblance(m, "VIREVO") >= 55 for m in mots) or "VIREVO" in cmd_upper or langue == "ZH"
         a_ok = any(calculer_ressemblance(m, "ANALYSE") >= 55 or calculer_ressemblance(m, "ANALYZE") >= 55 for m in mots) or langue == "ZH"
         
         cry = None
         for m in mots:
-            if m in cryptos_valides: 
-                cry = m
-                break
+            if m in cryptos_valides: cry = m; break
         if not cry:
             for m in mots:
                 if f"{m}USDT" in cryptos_valides or m in ["BTC", "ETH", "BNB", "SOL", "XRP", "DOGE"]:
-                    cry = m
-                    break
+                    cry = m; break
 
         if (est_salut_fr or est_salut_en or (langue == "ZH" and not cry)) and not cry:
             if langue == "ZH": log_action("[VIREVO] 你好！我是您的助手。今天您想分析哪种货币？")
             elif langue == "EN": log_action("[VIREVO] Hello! I am your AI assistant. Which crypto to analyze?")
             else: log_action("[VIREVO] Bonjour ! Je suis votre assistant. Quelle crypto analyser aujourd'hui ?")
             continue
-            
         if cry:
             if (not v_ok or not a_ok) and langue != "ZH":
                 if langue == "EN":
@@ -125,5 +170,5 @@ def executer_analyse(crypto, langue):
             elif langue == "EN": log_action(f'[VIREVO] Sorry, "{mot_inconnu}" is not recognized.')
             else: log_action(f'[VIREVO] Desole, "{mot_inconnu}" n\'est pas reconnu par mon systeme.')
 
-if name == "main":
-    main() 
+if __name__ == "__main__":
+    main()
