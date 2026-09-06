@@ -2,7 +2,6 @@ import time
 import random
 from binance.spot import Spot as Client
 
-# Variables globales securisees pour eviter toute erreur de definition
 cryptos_valides = ["BNB", "BTC", "ETH", "SOL", "XRP", "PEPE"]
 saluts_fr = ["BONJOUR", "SALUT", "COUCOU"]
 saluts_en = ["HELLO", "HI", "HEY"]
@@ -24,7 +23,6 @@ citations_zh = [
     "沃伦·巴菲特 : '第一条规则是永远不要亏钱。'",
     "乔治·索罗斯 : '重要的是当你正确时你赢了多少钱。'"
 ]
-
 def calculer_ressemblance(m1, m2):
     m1, m2 = m1.upper(), m2.upper()
     communs = sum(1 for c in m1 if c in m2)
@@ -37,8 +35,8 @@ def obtenir_donnees_reelles(paire):
         ticker = client.ticker_price(paire)
         prix_reel = float(ticker['price'])
         depth = client.depth(paire, limit=10)
-        tot_a = sum(float(a) for a in depth['asks'])
-        tot_v = sum(float(b) for b in depth['bids'])
+        tot_a = sum(float(a[1]) for a in depth['asks'])
+        tot_v = sum(float(b[1]) for b in depth['bids'])
         pression = (tot_a / (tot_a + tot_v)) * 100
         return prix_reel, pression
     except Exception as e:
@@ -50,7 +48,7 @@ def executer_analyse(crypto, langue):
     if langue == "ZH": print(f"\n[VIREVO] 获取 {p_aff} 实时数据...")
     elif langue == "EN": print(f"\n[VIREVO] Connecting for {p_aff}...")
     else: print(f"\n[VIREVO] Connexion pour {p_aff}...")
-    time.sleep(1)
+    time.sleep(0.5)
     prix, prs = obtenir_donnees_reelles(p_bin)
     if prix is not None:
         if prs > 55: dec, tend = "STRONG BUY 🚀", "BULLISH"
@@ -62,12 +60,8 @@ def executer_analyse(crypto, langue):
             print("=========================================")
             print(f"资产名称     : {p_aff}")
             print(f"当前价格     : ${prix:,.2f}")
-            print(f"订单薄分析   : {prs:.1f}% 买盘")
             print(f"AI 决策      : {dec}")
             print("=========================================")
-            chx = input("人工验证 (yes/no/是/否) : ").strip().lower()
-            if chx in ['yes', 'y', 'oui', 'o', '是']: print("[执行] 订单已就绪。")
-            else: print("[取消] 操作员已拒绝。")
         elif langue == "EN":
             print("    VIREVO Step 4: REPORT     ")
             print("=========================================")
@@ -75,9 +69,6 @@ def executer_analyse(crypto, langue):
             print(f"Real Price   : ${prix:,.2f}")
             print(f"AI Decision  : {dec}")
             print("=========================================")
-            chx = input("Human validation (yes/no) : ").strip().lower()
-            if chx in ['yes', 'y', 'oui', 'o']: print("[EXECUTION] Order prepared.")
-            else: print("[CANCELLATION] Rejected by operator.")
         else:
             print("    VIREVO Etape 4 : RAPPORT    ")
             print("=========================================")
@@ -85,20 +76,16 @@ def executer_analyse(crypto, langue):
             print(f"Prix Reel    : ${prix:,.2f}")
             print(f"Decision IA  : {dec}")
             print("=========================================")
-            chx = input("Validation humaine (oui/non) : ").strip().lower()
-            if chx in ['oui', 'o', 'yes', 'y']: print("[EXECUTION] Ordre prepare.")
-            else: print("[ANNULATION] Rejetee par l'operateur.")
     else:
         print("[VIREVO] Erreur reseau Binance. Reessayez.")
 def main():
     print("=========================================")
     print("      VIREVO AGENT v1.0.0 IS ONLINE      ")
     print("=========================================")
-    
-    # AFFICHAGE AUTOMATIQUE AU DEMARRAGE (Effet visuel immédiat pour votre vidéo)
-    print("\n[VIREVO] Chargement initial de l'Agent...")
-    executer_analyse("BNB", "FR")
-    
+    print("\n[VIREVO] Initialisation des flux...")
+    for coin in ["BTC", "ETH", "BNB"]:
+        executer_analyse(coin, "FR")
+        time.sleep(0.5)
     while True:
         cmd = input("\nUser: ").strip()
         if not cmd: continue
@@ -153,4 +140,5 @@ def main():
             if langue == "ZH": print(f'[VIREVO] 对不起，未能识别您输入的资产。')
             elif langue == "EN": print(f'[VIREVO] Sorry, "{mot_inconnu}" is not recognized.')
             else: print(f'[VIREVO] Desole, "{mot_inconnu}" n\'est pas reconnu par mon systeme.')
+
 main()
