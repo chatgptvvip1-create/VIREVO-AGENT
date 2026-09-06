@@ -12,8 +12,8 @@ def obtenir_donnees_reelles(paire):
         
         # 2. Récupération du carnet d'ordres (Order Book) pour calculer la pression
         depth = client.depth(paire, limit=10)
-        total_achats = sum(float(ask) for ask in depth['asks'])
-        total_ventes = sum(float(bid) for bid in depth['bids'])
+        total_achats = sum(float(ask[0]) for ask in depth['asks'])
+        total_ventes = sum(float(bid[0]) for bid in depth['bids'])
         
         # Calcul de la pression des acheteurs (en %)
         pression_achat = (total_achats / (total_achats + total_ventes)) * 100
@@ -86,5 +86,4 @@ def main():
         else:
             print("[VIREVO] Request not recognized. Commandes disponibles: VIREVO, analyze X/USDT, exit")
 
-if name == "main":
-    main()
+main()
