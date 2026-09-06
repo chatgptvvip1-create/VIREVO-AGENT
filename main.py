@@ -1,53 +1,90 @@
 import time
-import random
+from binance.spot import Spot as Client
+
+def obtenir_donnees_reelles(paire):
+    try:
+        # Connexion à l'API publique de Binance (pas besoin de clés privées pour lire le marché)
+        client = Client()
+        
+        # 1. Récupération du vrai prix en direct
+        ticker = client.ticker_price(paire)
+        prix_reel = float(ticker['price'])
+        
+        # 2. Récupération du carnet d'ordres (Order Book) pour calculer la pression
+        depth = client.depth(paire, limit=10)
+        total_achats = sum(float(ask) for ask in depth['asks'])
+        total_ventes = sum(float(bid) for bid in depth['bids'])
+        
+        # Calcul de la pression des acheteurs (en %)
+        pression_achat = (total_achats / (total_achats + total_ventes)) * 100
+        
+        return prix_reel, pression_achat
+    except Exception as e:
+        print(f"\n[ERREUR BINANCE] Impossible de lire les données : {e}")
+        return None, None
 
 def main():
-    print("==================================================")
-    print("         VIREVO AGENT v1.0.0 IS ONLINE            ")
-    print("  AI Trading Assistant - Binance Agent OS Challenge")
-    print("==================================================")
-    print("Vision: One agent. One conversation. Smarter trading decisions.\n")
-    print("Type your command (e.g., 'VIREVO, analyze BTC/USDT') or 'exit' to quit.\n")
+    print("=========================================")
+    print("      VIREVO AGENT v1.0.0 IS ONLINE      ")
+    print("=========================================")
     
     while True:
-        try:
-            user_input = input("User: ")
-        except (KeyboardInterrupt, EOFError):
-            print("\nShutting down VIREVO AGENT... Goodbye!")
-            break
-
-        if user_input.lower() == 'exit':
-            print("\nShutting down VIREVO AGENT... Goodbye!")
+        commande = input("\nUser: ").strip()
+        
+        if commande.lower() == 'exit':
+            print("Shutting down VIREVO AGENT... Goodbye!")
             break
             
-        if "analyze" in user_input.lower():
-            asset = "BTC/USDT"
-            for word in user_input.split():
-                if "/" in word:
-                    asset = word.upper()
-            
-            print(f"\n[VIREVO] 🧠 Step 2: Intent identified -> Market Analysis for {asset}")
+        # Vérifie si la commande commence par l'ordre d'analyse
+        if commande.upper().startswith("VIREVO, ANALYZE"):
+            try:
+                # Découpe la commande pour récupérer la paire (ex: BNB/USDT)
+                paire_brute = commande.split(" ")[-1]
+                paire_binance = paire_brute.replace("/", "").upper()
+            except IndexError:
+                print("[VIREVO] Format incorrect. Exemple: VIREVO, analyze BNB/USDT")
+                continue
+                
+            print(f"\n[VIREVO] Connecting to Binance Agent OS for {paire_brute}...")
             time.sleep(1)
-            print("[VIREVO] 🔍 Step 3: Processing market conditions through MCP architecture...")
-            time.sleep(1)
             
-            price = round(random.uniform(96000, 98000) if "BTC" in asset else random.uniform(3200, 3500), 2)
-            change = round(random.uniform(-3.5, 5.8), 2)
-            sign = "+" if change > 0 else ""
-            rsi = random.randint(38, 72)
-            trend = "BULLISH 🚀" if change > 0 else "BEARISH 📉"
-            recommendation = "STRONG BUY" if rsi < 45 else "STRONG SELL" if rsi > 65 else "HOLD / NEUTRAL"
+            # Récupération des vraies données du marché
+            prix, pression = obtenir_donnees_reelles(paire_binance)
             
-            print("\n=========================================")
-            print(f"   🤖 VIREVO Step 4: ACTIONABLE REPORT   ")
-            print("=========================================")
-            print(f" Asset         : {asset}")
-            print(f" Current Price : ${price} ({sign}{change}%)")
-            print(f" Market Trend  : {trend}")
-            print(f" RSI (14)      : {rsi}")
-            print(f" AI Decision   : {recommendation}")
-            print("=========================================\n")
+            if prix is not None:
+                # Logique de décision IA basée sur la vraie pression du carnet d'ordres
+                if pression > 55:
+                    decision = "STRONG BUY 🚀 (Forte pression acheteuse)"
+                    tendance = "BULLISH"
+                elif pression < 45:
+                    decision = "STRONG SELL 📉 (Forte pression vendeuse)"
+                    tendance = "BEARISH"
+                else:
+                    decision = "HOLD / NEUTRAL ⚖️ (Marché indécis)"
+                    tendance = "SIDEWAYS"
+                
+                print("\n=========================================")
+                print("    VIREVO Step 4: ACTIONABLE REPORT     ")
+                print("=========================================")
+                print(f"Asset        : {paire_brute}")
+                print(f"Real Price   : ${prix:,.2f}")
+                print(f"Order Book   : {pression:.1f}% Pression d'Achat")
+                print(f"Market Trend : {tendance}")
+                print("-----------------------------------------")
+                print(f"AI Decision  : {decision}")
+                print("=========================================")
+                
+                # Flux de sécurité (Workflow de proposition)
+                print(f"\n[PROPOSITION] Souhaitez-vous planifier un achat DCA sur {paire_brute} ?")
+                choix = input("Validation humaine (oui/non) : ").strip().lower()
+                if choix == 'oui':
+                    print(f"[EXECUTION] Ordre préparé pour le sous-compte Agentic. En attente des clés API.")
+                else:
+                    print("[ANNULATION] Proposition rejetée par l'opérateur.")
+            else:
+                print("[VIREVO] Erreur lors de l'analyse. Vérifiez le nom de la crypto.")
         else:
-            print(f"\n[VIREVO] 🤖 Request not recognized. Please try: 'VIREVO, analyze BTC/USDT'\n")
+            print("[VIREVO] Request not recognized. Commandes disponibles: VIREVO, analyze X/USDT, exit")
 
-main()
+if name == "main":
+    main()
