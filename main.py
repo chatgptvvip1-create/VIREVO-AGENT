@@ -7,7 +7,6 @@ saluts_en = ["HELLO", "HI", "HEY"]
 mots_merci_quitter = ["MERCI", "THANKS", "EXIT", "QUIT", "SORTIE"]
 mots_anglais = ["CHECK", "ANALYZE", "LOOK", "PRICE", "PLEASE", "HI", "HELLO", "THANKS", "QUIT", "EXIT"]
 
-# Base de donnees complète de citations varices
 citations_fr = [
     "Jesse Livermore : 'L'argent se fait en attendant, pas en tradant.'",
     "Warren Buffett : 'La regle n°1 est de ne jamais perdre d'argent.'",
@@ -39,20 +38,20 @@ def recuperer_toutes_les_cryptos():
     except Exception as e:
         print(f"[PRE-LOAD] Erreur liste Binance : {e}")
         return ["BNB", "BTC", "ETH", "SOL", "XRP", "PEPE", "DOGE"]
-
 def calculer_ressemblance(m1, m2):
     m1, m2 = m1.upper(), m2.upper()
     communs = sum(1 for c in m1 if c in m2)
     mx = max(len(m1), len(m2))
     return (communs / mx) * 100 if mx > 0 else 0
+
 def obtenir_donnees_reelles(paire):
     try:
         client = Client()
         ticker = client.ticker_price(paire)
         prix_reel = float(ticker['price'])
         depth = client.depth(paire, limit=10)
-        tot_a = sum(float(a) for a in depth['asks'])
-        tot_v = sum(float(b) for b in depth['bids'])
+        tot_a = sum(float(a[0]) for a in depth['asks'])
+        tot_v = sum(float(b[0]) for b in depth['bids'])
         pression = (tot_a / (tot_a + tot_v)) * 100
         return prix_reel, pression
     except Exception as e:
@@ -62,7 +61,7 @@ def obtenir_donnees_reelles(paire):
 def executer_analyse(crypto, langue):
     p_bin = f"{crypto}USDT"
     p_aff = f"{crypto}/USDT"
-    if langue == "ZH": print(f"\n[VIREVO] 获取 {p_aff} 实时数据...")
+    if langue == "ZH": print(f"\n[VIREVO] 获取 {p_aff} 实时 data...")
     elif langue == "EN": print(f"\n[VIREVO] Connecting for {p_aff}...")
     else: print(f"\n[VIREVO] Connexion pour {p_aff}...")
     time.sleep(0.5)
@@ -73,26 +72,12 @@ def executer_analyse(crypto, langue):
         else: dec, tend = "HOLD / NEUTRAL ⚖️", "SIDEWAYS"
         print("\n=========================================")
         if langue == "ZH":
-            print("    VIREVO 步骤 4 : 交易报告       ")
-            print("=========================================")
-            print(f"资产名称     : {p_aff}")
-            print(f"当前价格     : ${prix:,.2f}")
-            print(f"AI 决策      : {dec}")
-            print("=========================================")
+            print(f"资产名称     : {p_aff}\n当前价格     : ${prix:,.2f}\nAI 决策      : {dec}")
         elif langue == "EN":
-            print("    VIREVO Step 4: REPORT     ")
-            print("=========================================")
-            print(f"Asset        : {p_aff}")
-            print(f"Real Price   : ${prix:,.2f}")
-            print(f"AI Decision  : {dec}")
-            print("=========================================")
+            print(f"Asset        : {p_aff}\nReal Price   : ${prix:,.2f}\nAI Decision  : {dec}")
         else:
-            print("    VIREVO Etape 4 : RAPPORT    ")
-            print("=========================================")
-            print(f"Actif        : {p_aff}")
-            print(f"Prix Reel    : ${prix:,.2f}")
-            print(f"Decision IA  : {dec}")
-            print("=========================================")
+            print(f"Actif        : {p_aff}\nPrix Reel    : ${prix:,.2f}\nDecision IA  : {dec}")
+        print("=========================================")
     else:
         print("[VIREVO] Erreur reseau Binance. Reessayez.")
 def main():
@@ -166,3 +151,4 @@ def main():
             else: print(f'[VIREVO] Desole, "{mot_inconnu}" n\'est pas reconnu par mon systeme.')
 
 main()
+    
