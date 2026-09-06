@@ -16,14 +16,12 @@ citations_fr = [
 citations_en = [
     "Jesse Livermore: 'Money is made by sitting, not by trading.'",
     "Warren Buffett: 'Rule No. 1 is never lose money.'",
-    "George Soros: 'It's how much money you make when you're right.'",
-    "Benjamin Graham: 'The investor's chief problem is even his worst enemy.'"
+    "George Soros: 'It's how much money you make when you're right.'"
 ]
 citations_zh = [
     "杰西·利弗莫尔 : '钱是坐着赚来的。'",
     "沃伦·巴菲特 : '第一条规则是永远不要亏钱。'",
-    "乔治·索罗斯 : '重要的是当你正确时你赢了多少钱。'",
-    "本杰明·格雷厄姆 : '交易者最大的敌人往往是他自己。'"
+    "乔治·索罗斯 : '重要的是当你正确时你赢了多少钱。'"
 ]
 
 def recuperer_toutes_les_cryptos():
@@ -38,20 +36,20 @@ def recuperer_toutes_les_cryptos():
     except Exception as e:
         print(f"[PRE-LOAD] Erreur liste Binance : {e}")
         return ["BNB", "BTC", "ETH", "SOL", "XRP", "PEPE", "DOGE"]
+
 def calculer_ressemblance(m1, m2):
     m1, m2 = m1.upper(), m2.upper()
     communs = sum(1 for c in m1 if c in m2)
     mx = max(len(m1), len(m2))
     return (communs / mx) * 100 if mx > 0 else 0
-
 def obtenir_donnees_reelles(paire):
     try:
         client = Client()
         ticker = client.ticker_price(paire)
         prix_reel = float(ticker['price'])
         depth = client.depth(paire, limit=10)
-        tot_a = sum(float(a[0]) for a in depth['asks'])
-        tot_v = sum(float(b[0]) for b in depth['bids'])
+        tot_a = sum(float(a[1]) for a in depth['asks'])
+        tot_v = sum(float(b[1]) for b in depth['bids'])
         pression = (tot_a / (tot_a + tot_v)) * 100
         return prix_reel, pression
     except Exception as e:
@@ -61,9 +59,9 @@ def obtenir_donnees_reelles(paire):
 def executer_analyse(crypto, langue):
     p_bin = f"{crypto}USDT"
     p_aff = f"{crypto}/USDT"
-    if langue == "ZH": print(f"\n[VIREVO] 获取 {p_aff} 实时 data...")
+    if langue == "ZH": print(f"\n[VIREVO] 获取 {p_aff} 实时数据...")
     elif langue == "EN": print(f"\n[VIREVO] Connecting for {p_aff}...")
-    else: print(f"\n[VIREVO] Connexion pour {p_aff}...")
+    else: print(f"\n[VIREVO] Connexion Binance pour {p_aff}...")
     time.sleep(0.5)
     prix, prs = obtenir_donnees_reelles(p_bin)
     if prix is not None:
@@ -72,14 +70,26 @@ def executer_analyse(crypto, langue):
         else: dec, tend = "HOLD / NEUTRAL ⚖️", "SIDEWAYS"
         print("\n=========================================")
         if langue == "ZH":
-            print(f"资产名称     : {p_aff}\n当前价格     : ${prix:,.2f}\nAI 决策      : {dec}")
+            print(f"Asset        : {p_aff}\nReal Price   : ${prix:,.2f}\nOrder Book   : {prs:.1f}% 买盘压力\nMarket Trend : {tend}\nAI Decision  : {dec}")
+            print("=========================================\n是否为智能代理安排定投(DCA)买入订单？")
+            chx = input("人工授权验证 (yes/no/是/否) : ").strip().lower()
+            if chx in ['yes', 'y', '是', 'sh', 'shi']: print("[执行] 订单已为自动交易子账户准备就绪。")
+            else: print("[取消] 操作员已拒绝此交易提案。")
         elif langue == "EN":
-            print(f"Asset        : {p_aff}\nReal Price   : ${prix:,.2f}\nAI Decision  : {dec}")
+            print(f"Asset        : {p_aff}\nReal Price   : ${prix:,.2f}\nOrder Book   : {prs:.1f}% Buy Pressure\nMarket Trend : {tend}\nAI Decision  : {dec}")
+            print(f"=========================================\nSchedule a DCA buy order for {p_aff}?")
+            chx = input("Human validation (yes/no) : ").strip().lower()
+            if chx in ['yes', 'y', 'oui', 'o']: print("[EXECUTION] Order prepared for Agentic sub-account.")
+            else: print("[CANCELLATION] Proposal rejected by operator.")
         else:
-            print(f"Actif        : {p_aff}\nPrix Reel    : ${prix:,.2f}\nDecision IA  : {dec}")
+            print(f"Asset        : {p_aff}\nReal Price   : ${prix:,.2f}\nOrder Book   : {prs:.1f}% Pression Achat\nMarket Trend : {tend}\nAI Decision  : {dec}")
+            print(f"=========================================\nPlanifier un achat DCA sur {p_aff} ?")
+            chx = input("Validation humaine (oui/non) : ").strip().lower()
+            if chx in ['oui', 'o', 'yes', 'y']: print("[EXECUTION] Ordre prepare pour le sous-compte Agentic.")
+            else: print("[ANNULATION] Proposition rejetee par l'operateur.")
         print("=========================================")
     else:
-        print("[VIREVO] Erreur reseau Binance. Reessayez.")
+        print("[VIREVO] Erreur reseau Binance. Réessayez.")
 def main():
     print("=========================================")
     print("      VIREVO AGENT v1.0.0 IS ONLINE      ")
@@ -109,7 +119,7 @@ def main():
         
         est_fin = any(any(calculer_ressemblance(m, f) >= 70 for f in mots_merci_quitter) for m in mots)
         if est_fin:
-            if langue == "ZH": print(f"\n[VIREVO] 感谢使用！🍀\n[AI 金句] {random.choice(citations_zh)}\n再见！")
+            if langue == "ZH": print(f"\n[VIREVO] 感谢使用！🍀\n[AI 金句] {random.choice(citations_zh)}\n正在关闭... 再见！")
             elif langue == "EN": print(f"\n[VIREVO] Thank you! 🍀\n[AI Quote] {random.choice(citations_en)}\nGoodbye!")
             else: print(f"\n[VIREVO] Merci d'avoir utilise mon systeme ! 🍀\n[Citation] {random.choice(citations_fr)}\nAu revoir !")
             break
@@ -151,4 +161,5 @@ def main():
             else: print(f'[VIREVO] Desole, "{mot_inconnu}" n\'est pas reconnu par mon systeme.')
 
 main()
+    
     
