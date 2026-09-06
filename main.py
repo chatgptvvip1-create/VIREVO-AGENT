@@ -83,78 +83,21 @@ def executer_analyse(crypto, langue):
         if langue == "ZH": print("[VIREVO] 币安网络错误。请重试。")
         elif langue == "EN": print("[VIREVO] Binance network error. Please try again.")
         else: print("[VIREVO] Erreur réseau Binance. Réessayez.")
-def main():
-    print("=========================================")
-    print("      VIREVO AGENT v1.0.0 IS ONLINE      ")
-    print("=========================================")
-    cryptos_valides = ["BNB", "BTC", "ETH", "SOL", "XRP", "ADA", "DOGE", "DOT", "MATIC", "LINK", "AVAX", "SHIB", "PEPE"]
-    saluts_fr = ["BONJOUR", "SALUT", "COUCOU"]
-    saluts_en = ["HELLO", "HI", "HEY", "GOOD MORNING"]
-    saluts_zh = ["你好", "您好", "哈喽", "嗨"]
-    mots_depart_merci = ["MERCI", "THANKS", "THANK", "THANKYOU", "谢谢", "多谢", "EXIT", "QUIT", "QUITTER", "QUITER", "SORTIE", "SORTIR", "FERMER", "CLOSE", "退出", "关掉"]
-    mots_anglais = ["CHECK", "ANALYZE", "LOOK", "PRICE", "PLEASE", "YES", "NO", "HI", "HELLO", "THANKS", "QUIT", "EXIT"]
-    mots_chinois = ["分析", "查看", "价格", "请", "是的", "不", "你好", "比特币", "币安", "谢谢", "退出"]
-
-    citations_fr = [
-        "Jesse Livermore : 'L'argent se fait en attendant, pas en tradant.'",
-        "Warren Buffett : 'La règle n°1 est de ne jamais perdre d'argent. La règle n°2 est de ne jamais oublier la règle n°1.'",
-        "George Soros : 'Ce qui importe n'est pas d'avoir raison ou tort, mais de savoir combien d'argent on gagne quand on a raison.'"
-    ]
-    citations_en = [
-        "Jesse Livermore: 'Money is made by sitting, not by trading.'",
-        "Warren Buffett: 'Rule No. 1 is never lose money. Rule No. 2 is never forget Rule No. 1.'",
-        "George Soros: 'It's not whether you're right or wrong, but how much money you make when you're right.'"
-    ]
-    citations_zh = [
-        "杰西·利弗莫尔 : '钱是坐着赚来的，而不是靠频繁交易赚来的。'",
-        "沃伦·巴菲特 : '第一条规则是永远不要亏钱。第二条规则是永远不要忘记第一条。'",
-        "乔治·索罗斯 : '对与错并不重要，重要的是当你正确时你赢了多少钱。'"
-    ]
-
-    while True:
-        cmd = input("\nUser: ").strip()
-        if not cmd: continue
-        langue = "FR"
-        cmd_upper = cmd.upper()
-        if any(w in cmd_upper for w in mots_chinois) or any(c in cmd for c in "的一是在了不和有大这主中"): langue = "ZH"
-        else:
-            txt = cmd_upper.replace(",", " ").replace(";", " ").replace("/", " ").replace(".", " ")
-            mots = [m for m in txt.split(" ") if m]
-            if sum(1 for m in mots if m in mots_anglais) > 0: langue = "EN"
-        txt = cmd_upper.replace(",", " ").replace(";", " ").replace("/", " ").replace(".", " ")
-        mots = [m for m in txt.split(" ") if m]
-        
-        # Siga-out philosophique multilingue (Merci, Quitter, Sortie, etc.)
-        est_fin = any(any(calculer_ressemblance(m, f) >= 70 for f in mots_depart_merci) for m in mots) or any(z in cmd for z in ["谢谢", "退出"])
-        if est_fin:
-            if langue == "ZH":
-                print(f"\n[VIREVO] 感谢您的使用！祝您在未来的交易中好运连连！🍀\n[智能交易金句] {random.choice(citations_zh)}\n正在关闭... 再见！")
-            elif langue == "EN":
-                print(f"\n[VIREVO] Thank you for using my system! Good luck with your future trades! 🍀\n[AI Trading Quote] {random.choice(citations_en)}\nShutting down... Goodbye!")
-            else:
-                print(f"\n[VIREVO] Merci d'avoir utilisé mon système ! Je vous souhaite une excellente réussite et bonne chance dans vos investissements ! 🍀\n[Citation Trader] {random.choice(citations_fr)}\nArrêt en cours... Au revoir !")
-            break
-
-        est_salut_fr = any(any(calculer_ressemblance(m, s) >= 70 for s in saluts_fr) for m in mots)
-        est_salut_en = any(any(calculer_ressemblance(m, s) >= 70 for s in saluts_en) for m in mots)
-        est_salut_zh = any(s in cmd for s in saluts_zh)
-        v_ok = any(calculer_ressemblance(m, "VIREVO") >= 55 for m in mots) or "VIREVO" in cmd_upper
-        a_ok = any(calculer_ressemblance(m, "ANALYSE") >= 55 or calculer_ressemblance(m, "ANALYZE") >= 55 for m in mots) or "分析" in cmd
-        cry = None
-        for m in mots:
+for m in mots:
             if m in cryptos_valides: cry = m; break
         if not cry:
-            if "比特币" in cmd or "BTC" in cmd_upper: cry = "BTC"
-elif "以太坊" in cmd or "ETH" in cmd_upper: cry = "ETH"
-            elif "币安币" in cmd or "BNB" in cmd_upper: cry = "BNB"
-            elif "SOLANA" in cmd or "SOL" in cmd_upper: cry = "SOL"
-            elif "XRP" in cmd_upper or "瑞波" in cmd: cry = "XRP"
+            if "BTC" in cmd_upper: cry = "BTC"
+            elif "ETH" in cmd_upper: cry = "ETH"
+            elif "BNB" in cmd_upper: cry = "BNB"
+            elif "SOL" in cmd_upper: cry = "SOL"
+            elif "XRP" in cmd_upper: cry = "XRP"
             
-        if (est_salut_fr or est_salut_en or est_salut_zh) and not cry:
+        if (est_salut_fr or est_salut_en or langue == "ZH" and not cry) and not cry:
             if langue == "ZH": print("[VIREVO] 你好！我是您的智能AI助手。今天您想分析哪种加密货币？")
             elif langue == "EN": print("[VIREVO] Hello! I am your AI assistant. Which crypto would you like to analyze today?")
             else: print("[VIREVO] Bonjour ! Je suis votre assistant. Quelle crypto souhaitez-vous analyser aujourd'hui ?")
             continue
+            
         if cry:
             if (not v_ok or not a_ok) and langue != "ZH":
                 if langue == "EN":
