@@ -1,1 +1,16 @@
+{
+  "mcpServers": {
+    "binance-agent-os": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@binance/agent-os-mcp",
+        "run"
+      ],
+      "env": {
+        "BINANCE_ENV": "production"
+      }
+    }
+  }
+}
 
